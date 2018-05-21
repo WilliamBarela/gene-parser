@@ -31,25 +31,53 @@ clean_repeats_file="${repeats_file%.*}"_clean.fasta
 cat $repeats_file | sort | uniq > $clean_repeats_file
 
 max_lines=$(wc -l $clean_repeats_file | awk '{print $1}')
-step=$(($max_lines/($num_processes - 1))) 
+step=$(($max_lines/($num_processes))) 
 
 seqs=($(seq 1 $step $max_lines))
-# FIXME: add 1 to $max_lines as the last item of the array to correct for process_child function
 seqs[$num_processes]=$max_lines
 seqs_length=${#seqs[@]}
-echo $seqs_length
 
-function process_child { args : integer input } {
-	let "i=${input}"
-	# FIXME: subtract 1 from the second sequence so that you do not repeat the same search
-	partial_search=$(sed -n "${seqs[$i]}","${seqs[$((i + 1))]}"p "$clean_repeats_file");
-	for search in $partial_search; do
-		# FIXME: check if count is not null then echo to output file
-		count=$(grep -o $search $genome_file | uniq -c);
-		echo "$genome_file $count" >> $output_file;
+function echo_info () {
+	echo "[ USER INPUT ]"
+	echo -e "\tgenome file: $genome_file"
+	echo -e "\trepeats file: $repeats_file"
+	echo -e "\toutput file: $output_file"
+	echo -e "\tnum processes: $num_processes"
+
+	echo " "
+
+	echo "[ DATA GENERATED ]"
+	echo -e "\tclean repeats file: $clean_repeats_file"
+
+	echo " "
+
+	echo "[ CALCULATIONS ]"
+	echo -e "\tmax lines: $max_lines"
+	echo -e "\tstep size: $step"
+	echo -e "\tseqs: ${seqs[@]}"
+	echo -e "\tseqs_length: $seqs_length"
+
+	echo " "
+
+	echo "[ PAIRS ]"
+	for i in $(seq 0 1 $((seqs_length - 2))); do 
+		echo -e "\t[$i] [$((i + 1))] : \t${seqs[$i]}\t${seqs[$((i + 1))]}";
 	done
 }
 
-for i in $(seq 0 1 $((seqs_length - 1))); do
-	process_child $i &
-done
+# function process_child { args : integer input } {
+# 	let "i=${input}"
+# 	# FIXME: subtract 1 from the second sequence so that you do not repeat the same search
+# 	partial_search=$(sed -n "${seqs[$i]}","${seqs[$((i + 1))]}"p "$clean_repeats_file");
+# 	for search in $partial_search; do
+# 		# FIXME: check if count is not null then echo to output file
+# 		count=$(grep -o $search $genome_file | uniq -c);
+# 		echo "$genome_file $count" >> $output_file;
+# 	done
+# }
+# 
+# for i in $(seq 0 1 $((seqs_length - 2))); do
+# 	process_child $i &
+# done
+
+echo_info
