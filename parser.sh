@@ -14,8 +14,7 @@
 # split key file into number of process files as temporty files.
 # start a prcoess for each one of them.
 
-# These steps on 36 processors should reduce the run time to about 2 minutes.
-# FIXME: Need to add one liner to remove cariage returns
+# These steps on 36 processors should reduce the run time to about 20 minutes.
 
 # get argvs
 genome_file=$1
@@ -27,8 +26,18 @@ num_processes=$4
 repeats_extension="${repeats_file##*.}"
 clean_repeats_file="${repeats_file%.*}"_clean.fasta
 
+# get genome file name without extension:
+genome_extension="${genome_file##*.}"
+genome_one_line="${genome_file%.*}"_one_line.temp
+
 # make unique list of species' repeats
 cat $repeats_file | sort | uniq > $clean_repeats_file
+
+# make temporary one liner file of genome
+if [[ $(wc -l $genome_file | awk '{print $1}') -gt 0 ]]; then
+	awk 1 ORS="" $genome_file > $genome_one_line
+	genome_file=$genome_one_line
+fi
 
 max_lines=$(wc -l $clean_repeats_file | awk '{print $1}')
 step=$(($max_lines/($num_processes))) 
