@@ -34,7 +34,7 @@ max_lines=$(wc -l $clean_repeats_file | awk '{print $1}')
 step=$(($max_lines/($num_processes))) 
 
 seqs=($(seq 1 $step $max_lines))
-seqs[$num_processes]=$max_lines
+seqs[$num_processes]=$((max_lines + 1))
 seqs_length=${#seqs[@]}
 
 function echo_info () {
@@ -61,14 +61,21 @@ function echo_info () {
 
 	echo "[ PAIRS ]"
 	for i in $(seq 0 1 $((seqs_length - 2))); do 
-		echo -e "\t[$i] [$((i + 1))] : \t${seqs[$i]}\t${seqs[$((i + 1))]}";
+		let "x=$i"
+		let "j=$((x + 1))"
+		let "seq_start=${seqs[$i]}"
+		let "seq_end=$((seqs[$j] - 1))"
+		echo -e "\t[$i] [$((i + 1))] : \t$seq_start\t$seq_end";
 	done
 }
 
 # function process_child { args : integer input } {
 # 	let "i=${input}"
-# 	# FIXME: subtract 1 from the second sequence so that you do not repeat the same search
-# 	partial_search=$(sed -n "${seqs[$i]}","${seqs[$((i + 1))]}"p "$clean_repeats_file");
+#	let "j=$(($i + 1))"
+#	let "seq_start=${seqs[$i]}"
+#	let "seq_end=$((seqs[$j] - 1))"
+#
+# 	partial_search=$(sed -n "$seq_start","$seq_end"p "$clean_repeats_file");
 # 	for search in $partial_search; do
 # 		# FIXME: check if count is not null then echo to output file
 # 		count=$(grep -o $search $genome_file | uniq -c);
