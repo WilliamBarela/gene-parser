@@ -31,10 +31,7 @@ clean_repeats_file="${repeats_file%.*}"_clean.fasta
 cat $repeats_file | sort | uniq > $clean_repeats_file
 
 max_lines=$(wc -l $clean_repeats_file | awk '{print $1}')
-# max_lines=$((max_lines-1))
 step=$(($max_lines/($num_processes - 1))) 
-echo $max_lines
-echo $clean_repeats_file
 
 seqs=($(seq 1 $step $max_lines))
 # FIXME: add 1 to $max_lines as the last item of the array to correct for process_child function
