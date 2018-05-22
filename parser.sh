@@ -31,7 +31,10 @@ genome_extension="${genome_file##*.}"
 genome_one_line="${genome_file%.*}"_one_line.temp
 
 # make unique list of species' repeats
-cat $repeats_file | sort | uniq > $clean_repeats_file
+if [[ ! -f $clean_repeats_file ]]; then
+	# sort, remove all whitespaces, keep only strings which are all upcase, reduce to unique, output to clean_repeats_file
+	sort $repeats_file | sed -E -e 's/\s+//g' | egrep "^[A-Z]+$" | uniq > $clean_repeats_file
+fi
 
 # make temporary one liner file of genome
 if [[ $(wc -l $genome_file | awk '{print $1}') -gt 0 ]]; then
